@@ -1,0 +1,10 @@
+gymnasium
+highway-env
+stable-baselines3[extra]
+torch
+tensorboard
+matplotlib
+pygame
+jupyter
+pandas
+numpy
