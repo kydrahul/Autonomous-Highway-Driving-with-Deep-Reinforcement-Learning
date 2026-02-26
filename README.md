@@ -1,236 +1,145 @@
-# 🚗 Highway RL - Autonomous Driving Agent
+# 🚗 Autonomous Highway Driving with Deep Reinforcement Learning
 
-Deep Reinforcement Learning project for autonomous tactical decision-making in highway scenarios using multiple RL algorithms.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/Framework-Stable--Baselines3-orange)](https://stable-baselines3.readthedocs.io/)
+[![Environment](https://img.shields.io/badge/Environment-Highway--Env-green)](https://highway-env.farama.org/)
 
----
-
-## 🛠️ Tech Stack & Frameworks
-
-| Category | Technology | Version / Notes |
-|----------|-----------|-----------------|
-| **Language** | Python | 3.10+ |
-| **RL Environment** | [highway-env](https://highway-env.farama.org/) | Farama Foundation |
-| **RL Framework** | [Stable-Baselines3](https://stable-baselines3.readthedocs.io/) | DQN, PPO & variants |
-| **Deep Learning** | [PyTorch](https://pytorch.org/) | Neural network backend |
-| **Experiment Tracking** | [TensorBoard](https://www.tensorflow.org/tensorboard) | Training curves & metrics |
-| **Visualization** | Matplotlib + Pygame | Plots & live rendering |
-| **Data Handling** | NumPy + Pandas | Metrics aggregation |
-| **Environment API** | [Gymnasium](https://gymnasium.farama.org/) | OpenAI Gym successor |
-
-### 🤖 Algorithms Implemented
-
-| Algorithm | Description |
-|-----------|-------------|
-| **DQN** | Vanilla Deep Q-Network (baseline) |
-| **Double DQN** | Reduces Q-value overestimation |
-| **Dueling DQN** | Separate value & advantage streams |
-| **PPO** | Proximal Policy Optimization (actor-critic) |
-| **Rainbow DQN** | Combined improvements: Double + Dueling + PER + NoisyNet + Multi-step |
-
----
-
-## 📊 Project Status
-
-✅ **Training Complete:** 213,000 timesteps  
-✅ **Success Rate:** 70% (no crashes)  
-✅ **Average Reward:** 33.16 ± 10.13  
-✅ **Average Speed:** 29.52 m/s  
+A comprehensive comparison of Deep Reinforcement Learning algorithms for autonomous tactical decision-making in dense highway traffic.
 
 ---
 
 ## 🎯 Project Overview
 
-This project trains an autonomous driving agent to navigate highway traffic using **Deep Q-Network (DQN)** reinforcement learning. The agent learns to:
-- Perform tactical maneuvers (overtaking, merging, lane-keeping)
-- Balance efficiency (speed) with safety (collision avoidance)
-- Adapt to dynamic traffic conditions
+This project implements and compares five different Reinforcement Learning algorithms to train an autonomous agent to navigate a 4-lane highway. The agent must optimize speed, maintain lane discipline, and most importantly, avoid collisions in a dynamic environment with 50 other vehicles.
 
-### Environment
-- **Framework:** Highway-env (via Gymnasium)
-- **Scenario:** 4-lane highway with 50 vehicles
-- **Observation:** Kinematic data (position & velocity of 15 nearest vehicles)
-- **Actions:** Lane Left, Lane Right, Accelerate, Brake, Idle
+### 🧠 Algorithms Implemented
+- **DQN**: Vanilla Deep Q-Network (Baseline)
+- **Double DQN**: Addresses overestimation bias by decoupling action selection from evaluation.
+- **Dueling DQN**: Separates state value $V(s)$ from action advantage $A(s,a)$ for better generalization.
+- **Rainbow DQN**: Combines Double DQN, Dueling DQN, Noisy Networks, Multi-step returns, and Prioritized Experience Replay.
+- **PPO**: Proximal Policy Optimization (Actor-Critic method) for stable and consistent convergence.
 
-### Model Architecture
-- **Algorithm:** Deep Q-Network (DQN)
-- **Network:** 2 hidden layers × 256 neurons
-- **Learning Rate:** 5e-4
-- **Replay Buffer:** 15,000 transitions
-- **Discount Factor (γ):** 0.8
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **RL Environment** | [highway-env](https://highway-env.farama.org/) (Gymnasium) |
+| **RL Framework** | [Stable-Baselines3](https://stable-baselines3.readthedocs.io/) |
+| **Deep Learning** | [PyTorch](https://pytorch.org/) |
+| **Experiment Tracking** | [TensorBoard](https://www.tensorflow.org/tensorboard) |
+| **Visualization** | Matplotlib, Pygame |
+
+---
+
+## 📐 Markov Decision Process (MDP)
+
+The problem is formulated as an MDP: $\text{MDP} = (S, A, P, R, \gamma)$
+
+- **State Space ($S$):** 90-dimensional kinematic vector (position & velocity of the 15 nearest vehicles).
+- **Action Space ($A$):** Discrete set: `{LANE_LEFT, IDLE, LANE_RIGHT, FASTER, SLOWER}`.
+- **Reward Function ($R$):**
+  $$R = 0.4 \cdot R_{\text{speed}} + 0.1 \cdot R_{\text{lane}} + R_{\text{collision}}$$
+  - **Speed Reward:** Encourages maintaining speed between 20-30 m/s.
+  - **Lane Reward:** Custom bonus for staying in the leftmost (overtaking) lane.
+  - **Collision Penalty:** High negative reward (-1 normalized) for crashes.
+- **Discount Factor ($\gamma$):** 0.99 (focus on long-term safety and speed).
+
+---
+
+## 📊 Experimental Results: Theory vs. Reality
+
+### Theoretical Prediction
+1. **Rainbow DQN** (Most components)
+2. **Dueling DQN**
+3. **Double DQN**
+4. **PPO**
+5. **DQN**
+
+### Actual Performance (Evaluation over 50 episodes)
+
+| Model | Success Rate | Mean Reward | Mean Speed | Collision Rate |
+|-------|--------------|-------------|------------|----------------|
+| **PPO** | **96%** | **29.38 ± 4.54** | 20.16 m/s | 4% |
+| **Rainbow** | 88% | 29.21 ± 6.95 | 20.67 m/s | 12% |
+| **Dueling DQN** | 46% | 24.31 ± 10.94 | 25.80 m/s | 54% |
+| **Double DQN** | 20% | 23.79 ± 11.83 | 28.75 m/s | 80% |
+| **DQN** | 20% | 20.78 ± 13.04 | 28.85 m/s | 80% |
+
+### 🛠️ Key Insights
+- **On-Policy vs. Off-Policy**: PPO (On-policy) significantly outperformed the DQN family (Off-policy) in dense traffic. This is because PPO learns from fresh interactions, whereas DQN reuses stale, crash-prone data from earlier policies.
+- **Exploration**: PPO's stochastic policy provides more stable exploration compared to the abrupt random actions of $\epsilon$-greedy exploration in DQNs.
+- **Training Stability**: The clipping mechanism in PPO prevents catastrophic policy updates, leading to a much higher success rate (96%).
+
+---
+
+## 🖼️ Visual Results
+
+### 📈 Training Curves
+![Training Curves](results/plots/6_training_curves.png)
+*Comparison of reward convergence across all algorithms over 300,000 steps.*
+
+### 📊 Performance Comparison
+| Mean Reward | Success Rate |
+|:---:|:---:|
+| ![Mean Reward](results/plots/1_mean_reward.png) | ![Success Rate](results/plots/2_success_rate.png) |
+
+| Mean Speed | Reward Distribution |
+|:---:|:---:|
+| ![Mean Speed](results/plots/3_mean_speed.png) | ![Reward Distribution](results/plots/4_reward_distribution.png) |
+
+### 🕸️ Radar Analysis
+![Radar Chart](results/plots/5_radar_chart.png)
+*Multi-dimensional comparison: Speed, Success, Reward, and Stability.*
 
 ---
 
 ## 🚀 Quick Start
 
-### Activate Environment
+### 1. Installation
 ```bash
-.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
-### Test the Trained Agent (Visual)
+### 2. Visualize the Trained Agent
 ```bash
-python scripts\evaluation\test_agent.py
+python scripts/evaluation/showcase.py
 ```
 
-### Evaluate Performance (Metrics)
+### 3. Evaluate Performance
 ```bash
-python scripts\evaluation\evaluate_model.py
+python scripts/evaluation/evaluate_all_models.py
 ```
 
-### Compare Different Checkpoints
+### 4. Training
+To train an agent (e.g., PPO):
 ```bash
-python scripts\evaluation\compare_models.py
+python scripts/training/train_ppo.py
 ```
-
-### View Training Curves
-```bash
-tensorboard --logdir=./logs
-```
-Then open: http://localhost:6006
 
 ---
 
 ## 📁 Project Structure
-
 ```
-d:\rl\highway\
-├── 📄 README.md                    # This file
-├── 📄 requirements.txt             # Python dependencies
-│
-├── 📂 scripts/                     # All Python scripts
-│   ├── 📂 training/                # Training scripts
-│   │   ├── train_dqn.py            # Main training (completed)
-│   │   ├── train_advanced.py       # Advanced training (300K steps)
-│   │   └── resume_training.py      # Resume from checkpoint
-│   │
-│   └── 📂 evaluation/              # Evaluation scripts
-│       ├── test_agent.py           # Visualize agent (GUI)
-│       ├── evaluate_model.py       # Quantitative metrics
-│       ├── compare_models.py       # Compare checkpoints
-│       └── understand_mdp.py       # Analyze MDP structure
-│
-├── 📂 docs/                        # Documentation
-│   └── read.md                     # Original project brief
-│
-├── 📂 results/                     # Evaluation results
-│   └── evaluation_results.json     # Latest evaluation
-│
-├── 📂 models/                      # Saved model checkpoints (213 files)
-├── 📂 logs/                        # TensorBoard training logs
-└── 📂 .venv/                       # Python virtual environment
+├── 📂 models/           # Pre-trained model checkpoints
+├── 📂 results/          # Performance plots and metrics
+│   └── 📂 plots/        # Visualization of agent performance
+├── 📂 scripts/          # Training and evaluation logic
+│   ├── 📂 training/     # Algorithm-specific training scripts
+│   └── 📂 evaluation/   # Benchmarking and rendering scripts
+├── requirements.txt     # Python dependencies
+└── README.md            # You are here
 ```
-
----
-
-## 📈 Training Results
-
-### Performance Metrics
-| Metric | Value |
-|--------|-------|
-| **Success Rate** | 70.0% |
-| **Collision Rate** | 30.0% |
-| **Average Reward** | 33.16 ± 10.13 |
-| **Best Episode** | 39.42 |
-| **Average Speed** | 29.52 m/s |
-| **Episode Length** | 34.5 steps avg |
-
-### Training Details
-- **Total Timesteps:** 213,000
-- **Checkpoints Saved:** 213 models (every 1,000 steps)
-- **Training Duration:** ~3-4 hours
-- **Latest Model:** `dqn_highway_checkpoint_213000_steps.zip`
-
----
-
-## 🧪 Next Steps
-
-### 1. Advanced Training
-Train with optimized hyperparameters:
-```bash
-python scripts\training\train_advanced.py
-```
-- Larger network (512 neurons)
-- More observation data (15 vehicles)
-- 300K timesteps target
-
-### 2. Custom Configurations
-Modify environment in training scripts:
-```python
-config = {
-    "lanes_count": 4,        # 2-5 lanes
-    "vehicles_count": 50,    # Traffic density
-    "duration": 40,          # Episode length
-}
-```
-
-### 3. Analyze Learning
-- Open TensorBoard to view reward curves
-- Compare early vs. late training performance
-- Identify convergence points
-
----
-
-## 📚 Key Concepts
-
-### Markov Decision Process (MDP)
-- **State:** Kinematic observations (position, velocity of nearby vehicles)
-- **Actions:** Discrete driving maneuvers
-- **Rewards:** Speed + Lane discipline - Collisions
-
-### Deep Q-Network (DQN)
-- **Experience Replay:** Breaks correlation in training data
-- **Target Network:** Stabilizes learning
-- **ε-greedy Exploration:** Balances exploration vs. exploitation
-
----
-
-## 🛠️ Troubleshooting
-
-### Resume Training
-If training stops unexpectedly:
-```bash
-python scripts\training\resume_training.py
-```
-
-### View Specific Checkpoint
-Edit `scripts\evaluation\test_agent.py` to load a specific model:
-```python
-model = DQN.load("models/dqn_highway_checkpoint_100000_steps", env=env)
-```
-
-### Adjust Training Speed
-Reduce timesteps in training scripts for faster testing:
-```python
-TIME_STEPS = 50000  # Instead of 200000
-```
-
----
-
-## 📊 Expected Outcomes
-
-✅ **Autonomous Navigation:** >90% success rate (target)  
-✅ **Tactical Maneuvers:** Successful overtaking, merging, lane-keeping  
-✅ **Safety:** Reduced collision rate  
-✅ **Efficiency:** High-speed navigation (20-30 m/s)  
-✅ **Adaptability:** Performance across varying traffic densities  
-
-**Current Achievement:** 70% success rate at 213K steps
 
 ---
 
 ## 🔗 Resources
-
-- **Highway-env Documentation:** https://highway-env.farama.org/
-- **Stable-Baselines3 Docs:** https://stable-baselines3.readthedocs.io/
-- **DQN Paper:** [Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
-
----
-
-## 📝 License
-
-Educational project for reinforcement learning research.
+- [Highway-env Documentation](https://highway-env.farama.org/)
+- [Stable-Baselines3 Docs](https://stable-baselines3.readthedocs.io/)
+- [PPO Paper](https://arxiv.org/abs/1707.06347)
+- [Rainbow DQN Paper](https://arxiv.org/abs/1710.02298)
 
 ---
 
-**Last Updated:** February 10, 2026  
-**Status:** ✅ Training Complete | 🧪 Ready for Evaluation
+**Educational project for Reinforcement Learning research.**
