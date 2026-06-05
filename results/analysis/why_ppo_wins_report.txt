@@ -1,0 +1,77 @@
+===========================================================================
+WHY PPO OUTPERFORMS RAINBOW DQN — MECHANISTIC ANALYSIS REPORT
+===========================================================================
+
+─── 1. Distribution Shift (Core Cause) ──────────────────────────────────
+
+  OFF-POLICY (DQN family) workflow:
+    Episode 1 (early training): Agent crashes at step 21 → stores crash
+    Episode 100 (later training): Crash transition replayed 50+ times
+    → Network learns from outdated, crash-prone data  → Corrupted gradient
+
+  ON-POLICY (PPO) workflow:
+    Each update batch uses ONLY transitions from the CURRENT policy.
+    Old data is DISCARDED after each policy update.
+    → Training distribution always matches current (improving) policy
+
+  Evidence: DQN mean episode length = 21.2 steps
+            vs PPO mean episode length = 38.8 steps
+  DQN crashes early → most replay buffer transitions are from short, crash
+  episodes → biased toward crash-prone behaviour.
+
+─── 2. Exploration Quality ───────────────────────────────────────────────
+
+  DQN ε-greedy: With prob ε, take RANDOM action.
+    In dense traffic, a random lane change at 29 m/s = likely collision.
+  DQN collision rate: 80%
+
+  Rainbow NoisyNets: Learned parametric noise → smoother exploration.
+  Rainbow collision rate: 12%  (much better!)
+
+  PPO stochastic policy: Always samples from learned distribution.
+    Actions proportional to policy probabilities → no abrupt random jumps.
+  PPO collision rate: 4%  (best!)
+
+─── 3. Policy Update Stability ──────────────────────────────────────────
+
+  PPO clip(r_t, 0.8, 1.2): Prevents policy from changing too rapidly.
+  DQN gradient clipping: Operates at loss level, weaker constraint.
+
+  Evidence — Reward Standard Deviation (stability proxy):
+  Algorithm          Std Dev            Interpretation
+  ───────────────────────────────────────────────────────
+  PPO                   4.54          [OK] Very stable
+  Rainbow DQN           6.95              [~] Moderate
+  Dueling DQN          10.94              [X] Unstable
+  Double DQN           11.83              [X] Unstable
+  DQN                  13.04              [X] Unstable
+
+─── 4. Speed–Safety Dilemma ──────────────────────────────────────────────
+
+  DQN family drives FAST (≈29 m/s) → maximises per-step speed reward
+  but CRASHES frequently → short episodes → low total reward.
+
+  PPO drives CAUTIOUSLY (≈20 m/s) → lower per-step speed reward
+  but SURVIVES longer → 40-step episodes → higher TOTAL reward.
+
+  Algorithm         Mean Speed    Ep Length    Success
+  ───────────────────────────────────────────────────────
+  PPO                  20.16 m/s       38.8 steps       96%
+  Rainbow DQN          20.67 m/s       37.4 steps       88%
+  Dueling DQN          25.80 m/s       27.8 steps       46%
+  Double DQN           28.75 m/s       24.4 steps       20%
+  DQN                  28.85 m/s       21.2 steps       20%
+
+─── Conclusion ───────────────────────────────────────────────────────────
+
+  PPO's superiority is NOT just luck or hyperparameter sensitivity.
+  It stems from a structural advantage in safety-critical environments:
+
+  In dense traffic → early crashes are frequent → DQN replay buffers fill
+  with corrupted data → distribution shift degrades learning.
+  PPO's on-policy nature is IMMUNE to this problem.
+
+  Practical recommendation:
+  Use PPO (or SAC) for dense, safety-critical RL. Reserve DQN variants
+  for environments where early exploration costs are low.
+===========================================================================

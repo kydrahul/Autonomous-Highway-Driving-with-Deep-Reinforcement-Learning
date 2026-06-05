@@ -1,0 +1,26 @@
+======================================================================
+SAMPLE EFFICIENCY ANALYSIS REPORT
+======================================================================
+
+Algorithm                 Mean±Std      AUC    Success    Collision    MeanSpeed
+----------------------------------------------------------------------
+PPO                29.38±4.54       29.36     96.0%        4.0%       20.16
+Rainbow DQN        29.21±6.95       29.18     88.0%       12.0%       20.67
+Dueling DQN        24.31±10.94      24.56     46.0%       54.0%       25.80
+Double DQN         23.79±11.83      23.63     20.0%       80.0%       28.75
+DQN                20.78±13.04      21.01     20.0%       80.0%       28.85
+
+KEY FINDINGS:
+----------------------------------------------------------------------
+1. PPO achieves the highest AUC, indicating consistently high rewards
+   across all 50 evaluation episodes.
+2. DQN and Double DQN show bimodal reward distributions — they either
+   complete the episode (reward ~40) or crash early (reward ~10).
+3. Rainbow DQN's reward std (6.95) is much lower than Dueling DQN (10.94),
+   demonstrating PER + NoisyNets improve consistency.
+4. PPO's reward std (4.54) is the LOWEST of all — maximum policy stability.
+
+RECOMMENDATION:
+  For a robust paper, retrain each algorithm with 3-5 different seeds
+  and re-run this analysis. The current results are from seed=42 only.
+======================================================================

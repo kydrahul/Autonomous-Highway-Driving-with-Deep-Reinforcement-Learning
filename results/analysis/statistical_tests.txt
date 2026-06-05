@@ -1,0 +1,40 @@
+===========================================================================
+STATISTICAL SIGNIFICANCE REPORT
+Dataset: 50 evaluation episodes per algorithm | Seed: 42
+===========================================================================
+
+─── 95% Bootstrap Confidence Intervals (10,000 resamples) ───────────────
+Algorithm           Mean               95% CI      Std
+-------------------------------------------------------
+PPO               29.375 [ 27.947,  30.355]      4.588
+Rainbow DQN       29.213 [ 27.047,  30.876]      7.020
+Dueling DQN       24.311 [ 21.175,  27.328]     11.046
+Double DQN        23.790 [ 20.508,  27.034]     11.955
+DQN               20.784 [ 17.256,  24.334]     13.173
+
+─── Pairwise Tests (Wilcoxon or Mann-Whitney U) ─────────────────────────
+Pair                                   p-value             Sig    Cohen d       Effect
+---------------------------------------------------------------------------
+PPO vs Rainbow DQN                      0.0001  ***  (p<0.001)      0.027   negligible
+PPO vs Dueling DQN                      0.0255   *    (p<0.05)      0.599       medium
+PPO vs Double DQN                       0.0054   **   (p<0.01)      0.617       medium
+PPO vs DQN                              0.0000  ***  (p<0.001)      0.871        large
+Rainbow DQN vs Dueling DQN              0.0196   *    (p<0.05)      0.530       medium
+Rainbow DQN vs Double DQN               0.0106   *    (p<0.05)      0.553       medium
+Rainbow DQN vs DQN                      0.0000  ***  (p<0.001)      0.799       medium
+Dueling DQN vs Double DQN               0.4319   n.s. (p≥0.05)      0.045   negligible
+Dueling DQN vs DQN                      0.1074   n.s. (p≥0.05)      0.290        small
+Double DQN vs DQN                       0.2866   n.s. (p≥0.05)      0.239        small
+
+─── PPO vs All Others (Focus) ────────────────────────────────────────────
+  PPO vs Rainbow DQN    : p=0.0001 SIGNIFICANT ✓, d=0.027 (negligible)
+  PPO vs Dueling DQN    : p=0.0255 SIGNIFICANT ✓, d=0.599 (medium)
+  PPO vs Double DQN     : p=0.0054 SIGNIFICANT ✓, d=0.617 (medium)
+  PPO vs DQN            : p=0.0000 SIGNIFICANT ✓, d=0.871 (large)
+
+─── Interpretation ───────────────────────────────────────────────────────
+  • p < 0.05 means we can reject H₀ (no difference) with 95% confidence.
+  • Cohen's d: |d|<0.2=negligible, 0.2–0.5=small, 0.5–0.8=medium, >0.8=large
+  • NOTE: These tests use n=50 per algorithm (single seed). Results should
+    be validated with multi-seed training (3–5 seeds) for publication.
+===========================================================================
