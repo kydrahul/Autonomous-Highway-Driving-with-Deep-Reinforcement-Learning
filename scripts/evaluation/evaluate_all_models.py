@@ -27,7 +27,7 @@ import torch.nn.functional as F
 import math
 from typing import List, Optional, Tuple, Type
 
-from stable_baselines3 import DQN, PPO
+from stable_baselines3 import DQN, PPO, A2C
 from stable_baselines3.dqn.policies import DQNPolicy, QNetwork
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.common.monitor import Monitor
@@ -222,6 +222,11 @@ MODELS = {
     "PPO": {
         "path":    "models/ppo/ppo_final",
         "cls":     PPO,
+        "kwargs":  {},
+    },
+    "A2C": {
+        "path":    "models/a2c/a2c_final",
+        "cls":     A2C,
         "kwargs":  {},
     },
 }

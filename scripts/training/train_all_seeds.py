@@ -26,6 +26,7 @@ from datetime import datetime
 
 ALGORITHMS = {
     "ppo":         "scripts/training/train_ppo.py",
+    "a2c":         "scripts/training/train_a2c.py",
     "dqn":         "scripts/training/train_dqn.py",
     "double_dqn":  "scripts/training/train_double_dqn.py",
     "dueling_dqn": "scripts/training/train_dueling_dqn.py",
@@ -95,7 +96,7 @@ def patch_seed_and_paths(script_path: str, seed: int, total_steps: int) -> str:
 
 
 def train_one(algo: str, script: str, seed: int, total_steps: int) -> bool:
-    log(f"▶  Training {algo.upper()} | seed={seed} | steps={total_steps:,}")
+    log(f">> Training {algo.upper()} | seed={seed} | steps={total_steps:,}")
     tmp_script = patch_seed_and_paths(script, seed, total_steps)
 
     result = subprocess.run(
@@ -105,10 +106,10 @@ def train_one(algo: str, script: str, seed: int, total_steps: int) -> bool:
     )
 
     if result.returncode == 0:
-        log(f"✅  {algo.upper()} seed={seed} DONE")
+        log(f"[OK] {algo.upper()} seed={seed} DONE")
         return True
     else:
-        log(f"❌  {algo.upper()} seed={seed} FAILED (exit code {result.returncode})")
+        log(f"[FAIL] {algo.upper()} seed={seed} FAILED (exit code {result.returncode})")
         return False
 
 
@@ -151,7 +152,7 @@ if __name__ == "__main__":
 
     for algo, script in selected.items():
         if not os.path.exists(script):
-            log(f"⚠️  Script not found: {script} — skipping {algo}")
+            log(f"[WARN] Script not found: {script} — skipping {algo}")
             stats["skipped"] += len(args.seeds)
             continue
         for seed in args.seeds:
@@ -161,9 +162,9 @@ if __name__ == "__main__":
     elapsed = datetime.now() - start
     print("\n" + "=" * 65)
     print(f"  Training Complete in {elapsed}")
-    print(f"  ✅  Successful : {stats['success']}")
-    print(f"  ❌  Failed     : {stats['failed']}")
-    print(f"  ⚠️  Skipped    : {stats['skipped']}")
+    print(f"  [OK] Successful : {stats['success']}")
+    print(f"  [FAIL] Failed     : {stats['failed']}")
+    print(f"  [WARN] Skipped    : {stats['skipped']}")
     print("=" * 65)
     print(f"\n  Next step:")
     print(f"  python scripts/evaluation/evaluate_multi_seed.py "
