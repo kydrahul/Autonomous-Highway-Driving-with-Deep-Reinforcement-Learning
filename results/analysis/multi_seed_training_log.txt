@@ -1,7 +1,0 @@
-[21:49:30] >> Training PPO | seed=42 | steps=500,000
-[21:49:35] [FAIL] PPO seed=42 FAILED (exit code 1)
-[21:49:35] >> Training PPO | seed=123 | steps=500,000
-[21:49:39] [FAIL] PPO seed=123 FAILED (exit code 1)
-[21:49:39] >> Training PPO | seed=456 | steps=500,000
-[21:49:42] [FAIL] PPO seed=456 FAILED (exit code 1)
-[21:49:42] >> Training A2C | seed=42 | steps=500,000
