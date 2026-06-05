@@ -1,42 +1,58 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
-*$py.class
 *.pyo
 *.pyd
-*.so
-*.egg
+.Python
 *.egg-info/
 dist/
 build/
-.eggs/
+*.egg
 
-# Virtual environments
+# ── Virtual environments ───────────────────────────────────────────────────────
 .venv/
 venv/
 env/
 ENV/
 
-# IDE / Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Jupyter
+# ── Jupyter ────────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 *.ipynb
 
-# TensorBoard logs (optional: comment out to keep logs)
-# logs/
+# ── LaTeX build artifacts (keep .tex, .pdf; ignore build noise) ───────────────
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.blg
+*.bbl
 
-# Large model checkpoints (keep only final zips)
-# models/
+# ── TensorBoard / Training logs ────────────────────────────────────────────────
+logs/
+runs/
+tensorboard/
+*.tfevents.*
 
-# Environment / secrets
-.env
-*.env
+# ── Model checkpoints (large binaries) ────────────────────────────────────────
+# models/ directory is tracked but zip/pkl inside can be ignored if large
+*.zip
+*.pkl
+*.pt
+*.pth
+
+# ── IDE / OS ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Temp / scratch ────────────────────────────────────────────────────────────
+*.tmp
+*.bak
+*~
