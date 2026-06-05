@@ -144,7 +144,7 @@ if __name__ == "__main__":
         print("\n[DRY RUN] Would train:")
         for algo in selected:
             for seed in args.seeds:
-                print(f"  {algo:>12} | seed={seed} | → models/{algo}/seed_{seed}/")
+                print(f"  {algo:>12} | seed={seed} | -> models/{algo}/seed_{seed}/")
         sys.exit(0)
 
     stats = {"success": 0, "failed": 0, "skipped": 0}
