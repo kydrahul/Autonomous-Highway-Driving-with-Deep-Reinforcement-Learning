@@ -1,9 +1,9 @@
 # On-Policy vs Off-Policy Deep RL for Autonomous Highway Driving
 
-> **arXiv preprint** — *under active development (v2 with multi-seed + density sweep results coming)*
+> **arXiv preprint (v1)** — Five-algorithm DRL comparison for autonomous highway driving
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![License: arXiv](https://img.shields.io/badge/License-arXiv-green.svg)](https://arxiv.org/licenses/nonexclusive-distrib/1.0/license.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![highway-env](https://img.shields.io/badge/Env-highway--env-orange.svg)](https://github.com/eleurent/highway-env)
 [![Stable Baselines3](https://img.shields.io/badge/RL-Stable--Baselines3-red.svg)](https://stable-baselines3.readthedocs.io/)
 
@@ -34,7 +34,7 @@ We test this through a controlled comparison of five DRL algorithms on `highway-
 | Double DQN | 20% | 23.79 ± 11.83 | 80% |
 | DQN | 20% | 20.78 ± 13.04 | 80% |
 
-> *Current results: single seed (42), 50 evaluation episodes, 50 IDM vehicles. Multi-seed + density sweep results in v2.*
+> *Results: seed 42, 50 evaluation episodes, 50 IDM vehicles, 500k training steps per algorithm.*
 
 ---
 
@@ -217,4 +217,4 @@ If you use this work, please cite:
 ## License
 
 Paper: arXiv.org perpetual, non-exclusive license.
-Code: MIT License.
+Code: [MIT License](./LICENSE).
