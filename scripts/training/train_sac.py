@@ -233,6 +233,18 @@ class DiscreteSAC:
 
 
 # ── Environment helpers ───────────────────────────────────────────────────────
+# ── Left Lane Reward Wrapper (must match other training scripts) ──────────────
+class LeftLaneRewardWrapper(gym.Wrapper):
+    """Adds a bonus reward for staying in the left-most lane."""
+    def step(self, action):
+        obs, reward, done, truncated, info = self.env.step(action)
+        current_lane = self.unwrapped.vehicle.lane_index[2]
+        total_lanes  = self.unwrapped.config["lanes_count"]
+        left_reward  = (total_lanes - 1 - current_lane) / (total_lanes - 1)
+        reward      += 0.1 * left_reward
+        return obs, reward, done, truncated, info
+
+
 def make_env(seed: int, density: int = DENSITY):
     env = gym.make("highway-v0", render_mode=None)
     env.unwrapped.config.update({
@@ -246,13 +258,18 @@ def make_env(seed: int, density: int = DENSITY):
             "absolute": False,
         },
         "action": {"type": "DiscreteMetaAction"},
-        "reward_speed_range": [20, 30],
+        "initial_spacing": 2,
         "collision_reward": -1,
+        "right_lane_reward": 0.1,
+        "high_speed_reward": 0.4,
+        "reward_speed_range": [20, 30],
         "normalize_reward": True,
         "duration": 40,
         "simulation_frequency": 5,
         "policy_frequency": 1,
+        "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
     })
+    env = LeftLaneRewardWrapper(env)
     env.reset(seed=seed)
     return env
 

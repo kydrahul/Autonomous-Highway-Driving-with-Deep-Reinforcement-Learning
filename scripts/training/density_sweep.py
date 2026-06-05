@@ -32,7 +32,9 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 try:
-    from scripts.training.train_rainbow_dqn import RainbowDQN
+    from scripts.training.train_rainbow_dqn import (
+        RainbowDQN, RainbowPolicy, PrioritizedReplayBuffer
+    )
 except ImportError:
     RainbowDQN = None
     print("[WARNING] RainbowDQN not found - will skip rainbow in sweep")
@@ -47,6 +49,18 @@ EVAL_EPS  = 50
 os.makedirs("models/density_sweep", exist_ok=True)
 os.makedirs("results/density_sweep", exist_ok=True)
 os.makedirs("results/plots",         exist_ok=True)
+
+
+# ── Left Lane Reward Wrapper (must match other training scripts) ──────────────
+class LeftLaneRewardWrapper(gym.Wrapper):
+    """Adds a bonus reward for staying in the left-most lane."""
+    def step(self, action):
+        obs, reward, done, truncated, info = self.env.step(action)
+        current_lane = self.unwrapped.vehicle.lane_index[2]
+        total_lanes  = self.unwrapped.config["lanes_count"]
+        left_reward  = (total_lanes - 1 - current_lane) / (total_lanes - 1)
+        reward      += 0.1 * left_reward
+        return obs, reward, done, truncated, info
 
 
 def make_env(density: int, seed: int):
@@ -64,13 +78,18 @@ def make_env(density: int, seed: int):
                 "absolute": False,
             },
             "action": {"type": "DiscreteMetaAction"},
-            "reward_speed_range": [20, 30],
+            "initial_spacing": 2,
             "collision_reward": -1,
+            "right_lane_reward": 0.1,
+            "high_speed_reward": 0.4,
+            "reward_speed_range": [20, 30],
             "normalize_reward": True,
             "duration": 40,
             "simulation_frequency": 5,
             "policy_frequency": 1,
+            "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
         })
+        env = LeftLaneRewardWrapper(env)
         env.reset(seed=seed)
         return env
     return _init
@@ -135,9 +154,21 @@ def train_one(algo: str, density: int, seed: int, steps: int):
         )
     elif algo == "rainbow" and RainbowDQN is not None:
         model = RainbowDQN(
-            "MlpPolicy", vec_env, seed=seed, verbose=0,
+            policy=RainbowPolicy,
+            env=vec_env, seed=seed, verbose=0,
+            replay_buffer_class=PrioritizedReplayBuffer,
+            replay_buffer_kwargs=dict(
+                alpha=0.6, beta_start=0.4, beta_frames=steps,
+                n_step=3, gamma=0.99,
+            ),
             learning_rate=5e-4, batch_size=64, gamma=0.99,
             buffer_size=100_000,
+            tau=1.0, target_update_interval=1000,
+            train_freq=4, gradient_steps=1,
+            learning_starts=1000,
+            exploration_fraction=0.0,
+            exploration_initial_eps=0.0,
+            exploration_final_eps=0.0,
             policy_kwargs={"net_arch": [256, 256]},
         )
     else:  # plain DQN fallback or if rainbow not available
