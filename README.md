@@ -1,236 +1,220 @@
-# 🚗 Highway RL - Autonomous Driving Agent
+# On-Policy vs Off-Policy Deep RL for Autonomous Highway Driving
 
-Deep Reinforcement Learning project for autonomous tactical decision-making in highway scenarios using multiple RL algorithms.
+> **arXiv preprint** — *under active development (v2 with multi-seed + density sweep results coming)*
 
----
-
-## 🛠️ Tech Stack & Frameworks
-
-| Category | Technology | Version / Notes |
-|----------|-----------|-----------------|
-| **Language** | Python | 3.10+ |
-| **RL Environment** | [highway-env](https://highway-env.farama.org/) | Farama Foundation |
-| **RL Framework** | [Stable-Baselines3](https://stable-baselines3.readthedocs.io/) | DQN, PPO & variants |
-| **Deep Learning** | [PyTorch](https://pytorch.org/) | Neural network backend |
-| **Experiment Tracking** | [TensorBoard](https://www.tensorflow.org/tensorboard) | Training curves & metrics |
-| **Visualization** | Matplotlib + Pygame | Plots & live rendering |
-| **Data Handling** | NumPy + Pandas | Metrics aggregation |
-| **Environment API** | [Gymnasium](https://gymnasium.farama.org/) | OpenAI Gym successor |
-
-### 🤖 Algorithms Implemented
-
-| Algorithm | Description |
-|-----------|-------------|
-| **DQN** | Vanilla Deep Q-Network (baseline) |
-| **Double DQN** | Reduces Q-value overestimation |
-| **Dueling DQN** | Separate value & advantage streams |
-| **PPO** | Proximal Policy Optimization (actor-critic) |
-| **Rainbow DQN** | Combined improvements: Double + Dueling + PER + NoisyNet + Multi-step |
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![License: arXiv](https://img.shields.io/badge/License-arXiv-green.svg)](https://arxiv.org/licenses/nonexclusive-distrib/1.0/license.html)
+[![highway-env](https://img.shields.io/badge/Env-highway--env-orange.svg)](https://github.com/eleurent/highway-env)
+[![Stable Baselines3](https://img.shields.io/badge/RL-Stable--Baselines3-red.svg)](https://stable-baselines3.readthedocs.io/)
 
 ---
 
-## 📊 Project Status
+## Paper
 
-✅ **Training Complete:** 213,000 timesteps  
-✅ **Success Rate:** 70% (no crashes)  
-✅ **Average Reward:** 33.16 ± 10.13  
-✅ **Average Speed:** 29.52 m/s  
+**Title:** On-Policy vs. Off-Policy Deep Reinforcement Learning for Autonomous Highway Driving: A Comprehensive Empirical Study
 
----
+**Author:** Rahul Barma, IIIT Naya Raipur
 
-## 🎯 Project Overview
+**Abstract:**
+We investigate a falsifiable hypothesis: *off-policy deep reinforcement learning algorithms suffer from replay buffer contamination by early crash trajectories, causing a distribution shift that degrades performance in proportion to traffic density, and that this degradation is the primary driver of on-policy PPO's superiority in safety-critical autonomous driving.*
 
-This project trains an autonomous driving agent to navigate highway traffic using **Deep Q-Network (DQN)** reinforcement learning. The agent learns to:
-- Perform tactical maneuvers (overtaking, merging, lane-keeping)
-- Balance efficiency (speed) with safety (collision avoidance)
-- Adapt to dynamic traffic conditions
+We test this through a controlled comparison of five DRL algorithms on `highway-env`. PPO achieves **96% success rate** (4% collision) vs Rainbow DQN's 88% (12% collision) vs vanilla DQN's 20% (80% collision). Statistical significance confirmed via Wilcoxon signed-rank tests (p < 0.05), Cohen's d = 0.871 (large effect).
 
-### Environment
-- **Framework:** Highway-env (via Gymnasium)
-- **Scenario:** 4-lane highway with 50 vehicles
-- **Observation:** Kinematic data (position & velocity of 15 nearest vehicles)
-- **Actions:** Lane Left, Lane Right, Accelerate, Brake, Idle
-
-### Model Architecture
-- **Algorithm:** Deep Q-Network (DQN)
-- **Network:** 2 hidden layers × 256 neurons
-- **Learning Rate:** 5e-4
-- **Replay Buffer:** 15,000 transitions
-- **Discount Factor (γ):** 0.8
+📄 **[Read the paper (PDF)](./main.pdf)**
 
 ---
 
-## 🚀 Quick Start
+## Key Results
 
-### Activate Environment
-```bash
-.\.venv\Scripts\Activate.ps1
-```
+| Algorithm | Success Rate | Mean Reward | Collision Rate |
+|---|---|---|---|
+| **PPO** | **96%** | **29.38 ± 4.54** | **4%** |
+| Rainbow DQN | 88% | 29.21 ± 6.95 | 12% |
+| Dueling DQN | 46% | 24.31 ± 10.94 | 54% |
+| Double DQN | 20% | 23.79 ± 11.83 | 80% |
+| DQN | 20% | 20.78 ± 13.04 | 80% |
 
-### Test the Trained Agent (Visual)
-```bash
-python scripts\evaluation\test_agent.py
-```
-
-### Evaluate Performance (Metrics)
-```bash
-python scripts\evaluation\evaluate_model.py
-```
-
-### Compare Different Checkpoints
-```bash
-python scripts\evaluation\compare_models.py
-```
-
-### View Training Curves
-```bash
-tensorboard --logdir=./logs
-```
-Then open: http://localhost:6006
+> *Current results: single seed (42), 50 evaluation episodes, 50 IDM vehicles. Multi-seed + density sweep results in v2.*
 
 ---
 
-## 📁 Project Structure
+## Repository Structure
 
 ```
-d:\rl\highway\
-├── 📄 README.md                    # This file
-├── 📄 requirements.txt             # Python dependencies
+├── main.tex                        # Full paper (LaTeX source)
+├── main.pdf                        # Compiled paper
+├── references.bib                  # Bibliography
+├── requirements.txt                # Python dependencies
 │
-├── 📂 scripts/                     # All Python scripts
-│   ├── 📂 training/                # Training scripts
-│   │   ├── train_dqn.py            # Main training (completed)
-│   │   ├── train_advanced.py       # Advanced training (300K steps)
-│   │   └── resume_training.py      # Resume from checkpoint
+├── scripts/
+│   ├── training/
+│   │   ├── train_ppo.py            # PPO training
+│   │   ├── train_dqn.py            # Vanilla DQN
+│   │   ├── train_double_dqn.py     # Double DQN
+│   │   ├── train_dueling_dqn.py    # Dueling DQN
+│   │   ├── train_rainbow_dqn.py    # Custom Rainbow DQN (PER + NoisyNets + n-step)
+│   │   ├── train_sac.py            # Discrete SAC (Christodoulou 2019)
+│   │   ├── train_all_seeds.py      # Multi-seed training orchestrator
+│   │   ├── train_c51_rainbow.py    # Full Rainbow with C51 distributional RL
+│   │   ├── density_sweep.py        # Density experiment (10→50 vehicles)
+│   │   └── ablation/
+│   │       ├── train_ablation_ladder.py   # Rainbow component ablation
+│   │       └── buffer_ablation.py         # Buffer size + periodic wipe experiment
 │   │
-│   └── 📂 evaluation/              # Evaluation scripts
-│       ├── test_agent.py           # Visualize agent (GUI)
-│       ├── evaluate_model.py       # Quantitative metrics
-│       ├── compare_models.py       # Compare checkpoints
-│       └── understand_mdp.py       # Analyze MDP structure
+│   ├── evaluation/
+│   │   ├── evaluate_all_models.py  # Evaluate all trained models
+│   │   ├── evaluate_multi_seed.py  # Multi-seed evaluation
+│   │   ├── render_agents.py        # Render agent behaviour (visual)
+│   │   └── visualize_results.py    # Generate result plots
+│   │
+│   └── analysis/
+│       ├── statistical_tests.py    # Wilcoxon, Mann-Whitney, Cohen's d
+│       ├── cross_seed_stats.py     # Cross-seed aggregate statistics
+│       ├── sample_efficiency.py    # AUC + sample efficiency plots
+│       └── why_ppo_wins.py         # Mechanistic analysis plots
 │
-├── 📂 docs/                        # Documentation
-│   └── read.md                     # Original project brief
+├── results/
+│   ├── metrics.json                # Raw evaluation metrics
+│   └── plots/                      # All paper figures (PNG)
 │
-├── 📂 results/                     # Evaluation results
-│   └── evaluation_results.json     # Latest evaluation
-│
-├── 📂 models/                      # Saved model checkpoints (213 files)
-├── 📂 logs/                        # TensorBoard training logs
-└── 📂 .venv/                       # Python virtual environment
+└── models/                         # Trained model checkpoints
+    ├── ppo/
+    ├── rainbow_dqn/
+    ├── dueling_dqn/
+    ├── double_dqn/
+    └── dqn/
 ```
 
 ---
 
-## 📈 Training Results
+## Setup
 
-### Performance Metrics
-| Metric | Value |
-|--------|-------|
-| **Success Rate** | 70.0% |
-| **Collision Rate** | 30.0% |
-| **Average Reward** | 33.16 ± 10.13 |
-| **Best Episode** | 39.42 |
-| **Average Speed** | 29.52 m/s |
-| **Episode Length** | 34.5 steps avg |
-
-### Training Details
-- **Total Timesteps:** 213,000
-- **Checkpoints Saved:** 213 models (every 1,000 steps)
-- **Training Duration:** ~3-4 hours
-- **Latest Model:** `dqn_highway_checkpoint_213000_steps.zip`
-
----
-
-## 🧪 Next Steps
-
-### 1. Advanced Training
-Train with optimized hyperparameters:
 ```bash
-python scripts\training\train_advanced.py
-```
-- Larger network (512 neurons)
-- More observation data (15 vehicles)
-- 300K timesteps target
+# Clone
+git clone https://github.com/kydrahul/Autonomous-Highway-Driving-with-Deep-Reinforcement-Learning
+cd Autonomous-Highway-Driving-with-Deep-Reinforcement-Learning
 
-### 2. Custom Configurations
-Modify environment in training scripts:
-```python
-config = {
-    "lanes_count": 4,        # 2-5 lanes
-    "vehicles_count": 50,    # Traffic density
-    "duration": 40,          # Episode length
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate      # Windows
+# source .venv/bin/activate  # Linux/Mac
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+## Reproduce Results
+
+### Train all algorithms (single seed)
+```bash
+# Individual algorithms
+python scripts/training/train_ppo.py
+python scripts/training/train_rainbow_dqn.py
+python scripts/training/train_dqn.py
+python scripts/training/train_double_dqn.py
+python scripts/training/train_dueling_dqn.py
+```
+
+### Multi-seed training (runs overnight, ~15h)
+```bash
+python scripts/training/train_all_seeds.py --seeds 42 123 456 --steps 500000
+```
+
+### Density sweep experiment
+```bash
+python scripts/training/density_sweep.py --steps 300000
+```
+
+### Buffer ablation (causal proof of distribution shift)
+```bash
+python scripts/training/ablation/buffer_ablation.py --steps 200000
+```
+
+### SAC baseline
+```bash
+python scripts/training/train_sac.py --seeds 42 123 456
+```
+
+### Evaluate trained models
+```bash
+python scripts/evaluation/evaluate_all_models.py
+```
+
+### Generate all paper figures
+```bash
+python scripts/analysis/statistical_tests.py
+python scripts/analysis/why_ppo_wins.py
+python scripts/analysis/sample_efficiency.py
+python scripts/analysis/cross_seed_stats.py
+```
+
+### Compile paper
+```bash
+pdflatex main.tex
+pdflatex main.tex   # run twice to resolve references
+```
+
+---
+
+## Algorithm Implementations
+
+| Algorithm | Key Features | File |
+|---|---|---|
+| DQN | Experience replay, target network, ε-greedy | `train_dqn.py` |
+| Double DQN | Decoupled action selection/evaluation | `train_double_dqn.py` |
+| Dueling DQN | Value + Advantage streams | `train_dueling_dqn.py` |
+| **Rainbow DQN** | Double + Dueling + **PER (SumTree)** + **NoisyLinear** + **n-step(3)** | `train_rainbow_dqn.py` |
+| PPO | Clipped surrogate, GAE, entropy regularization | `train_ppo.py` |
+| **Discrete SAC** | Off-policy + entropy maximization (Christodoulou 2019) | `train_sac.py` |
+
+---
+
+## Environment Configuration
+
+| Parameter | Value |
+|---|---|
+| Environment | `highway-v0` (highway-env 1.10) |
+| Lanes | 4 |
+| Surrounding vehicles | 50 (IDM) |
+| Observation | Kinematics — 15 vehicles × 6 features = 90-dim |
+| Actions | 5 discrete meta-actions |
+| Episode duration | 40 seconds |
+| Simulation frequency | 5 Hz |
+| Policy frequency | 1 Hz |
+| Training steps | 500,000 |
+| Random seed | 42 (v1); {42, 123, 456} (v2) |
+
+---
+
+## Roadmap
+
+- [x] **v1** — 5-algorithm comparison, statistical tests, mechanistic analysis
+- [ ] **v2** — Multi-seed (3 seeds), density sweep (10→50 vehicles), cross-seed Wilcoxon
+- [ ] **v3** — Buffer ablation, SAC baseline, full causal proof of distribution shift hypothesis
+
+---
+
+## Citation
+
+If you use this work, please cite:
+
+```bibtex
+@article{barma2025onpolicy,
+  title   = {On-Policy vs. Off-Policy Deep Reinforcement Learning for
+             Autonomous Highway Driving: A Comprehensive Empirical Study},
+  author  = {Barma, Rahul},
+  journal = {arXiv preprint},
+  year    = {2025},
+  url     = {https://github.com/kydrahul/Autonomous-Highway-Driving-with-Deep-Reinforcement-Learning}
 }
 ```
-
-### 3. Analyze Learning
-- Open TensorBoard to view reward curves
-- Compare early vs. late training performance
-- Identify convergence points
+*(Update with arXiv ID once available)*
 
 ---
 
-## 📚 Key Concepts
+## License
 
-### Markov Decision Process (MDP)
-- **State:** Kinematic observations (position, velocity of nearby vehicles)
-- **Actions:** Discrete driving maneuvers
-- **Rewards:** Speed + Lane discipline - Collisions
-
-### Deep Q-Network (DQN)
-- **Experience Replay:** Breaks correlation in training data
-- **Target Network:** Stabilizes learning
-- **ε-greedy Exploration:** Balances exploration vs. exploitation
-
----
-
-## 🛠️ Troubleshooting
-
-### Resume Training
-If training stops unexpectedly:
-```bash
-python scripts\training\resume_training.py
-```
-
-### View Specific Checkpoint
-Edit `scripts\evaluation\test_agent.py` to load a specific model:
-```python
-model = DQN.load("models/dqn_highway_checkpoint_100000_steps", env=env)
-```
-
-### Adjust Training Speed
-Reduce timesteps in training scripts for faster testing:
-```python
-TIME_STEPS = 50000  # Instead of 200000
-```
-
----
-
-## 📊 Expected Outcomes
-
-✅ **Autonomous Navigation:** >90% success rate (target)  
-✅ **Tactical Maneuvers:** Successful overtaking, merging, lane-keeping  
-✅ **Safety:** Reduced collision rate  
-✅ **Efficiency:** High-speed navigation (20-30 m/s)  
-✅ **Adaptability:** Performance across varying traffic densities  
-
-**Current Achievement:** 70% success rate at 213K steps
-
----
-
-## 🔗 Resources
-
-- **Highway-env Documentation:** https://highway-env.farama.org/
-- **Stable-Baselines3 Docs:** https://stable-baselines3.readthedocs.io/
-- **DQN Paper:** [Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
-
----
-
-## 📝 License
-
-Educational project for reinforcement learning research.
-
----
-
-**Last Updated:** February 10, 2026  
-**Status:** ✅ Training Complete | 🧪 Ready for Evaluation
+Paper: arXiv.org perpetual, non-exclusive license.
+Code: MIT License.
