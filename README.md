@@ -16,9 +16,9 @@
 **Author:** Rahul Barma, IIIT Naya Raipur
 
 **Abstract:**
-We investigate a falsifiable hypothesis: *off-policy deep reinforcement learning algorithms suffer from replay buffer contamination by early crash trajectories, causing a distribution shift that degrades performance in proportion to traffic density, and that this degradation is the primary driver of on-policy PPO's superiority in safety-critical autonomous driving.*
+We investigate a falsifiable hypothesis: *off-policy deep reinforcement learning algorithms suffer from replay buffer contamination by early crash trajectories, causing a distribution shift that degrades learning quality, and that this effect is a primary driver of on-policy PPO's superiority in safety-critical autonomous driving.*
 
-We test this through a controlled comparison of five DRL algorithms on `highway-env`. PPO achieves **96% success rate** (4% collision) vs Rainbow DQN's 88% (12% collision) vs vanilla DQN's 20% (80% collision). Statistical significance confirmed via Wilcoxon signed-rank tests (p < 0.05), Cohen's d = 0.871 (large effect).
+We test this through a controlled comparison of five DRL algorithms on `highway-env`. PPO achieves **96% success rate** (4% collision) vs our 5-component Rainbow DQN's 88% (12% collision) vs vanilla DQN's 20% (80% collision). Statistical significance confirmed via Wilcoxon signed-rank tests (p < 0.05), Cohen's d = 0.871 (large effect).
 
 📄 **[Read the paper (PDF)](./main.pdf)**
 
@@ -29,7 +29,7 @@ We test this through a controlled comparison of five DRL algorithms on `highway-
 | Algorithm | Success Rate | Mean Reward | Collision Rate |
 |---|---|---|---|
 | **PPO** | **96%** | **29.38 ± 4.54** | **4%** |
-| Rainbow DQN | 88% | 29.21 ± 6.95 | 12% |
+| Rainbow (5/6) | 88% | 29.21 ± 6.95 | 12% |
 | Dueling DQN | 46% | 24.31 ± 10.94 | 54% |
 | Double DQN | 20% | 23.79 ± 11.83 | 80% |
 | DQN | 20% | 20.78 ± 13.04 | 80% |
@@ -165,7 +165,7 @@ pdflatex main.tex   # run twice to resolve references
 | DQN | Experience replay, target network, ε-greedy | `train_dqn.py` |
 | Double DQN | Decoupled action selection/evaluation | `train_double_dqn.py` |
 | Dueling DQN | Value + Advantage streams | `train_dueling_dqn.py` |
-| **Rainbow DQN** | Double + Dueling + **PER (SumTree)** + **NoisyLinear** + **n-step(3)** | `train_rainbow_dqn.py` |
+| **Rainbow DQN (5/6)** | Double + Dueling + **PER (SumTree)** + **NoisyLinear** + **n-step(3)** (excludes C51) | `train_rainbow_dqn.py` |
 | PPO | Clipped surrogate, GAE, entropy regularization | `train_ppo.py` |
 | **Discrete SAC** | Off-policy + entropy maximization (Christodoulou 2019) | `train_sac.py` |
 
@@ -190,9 +190,9 @@ pdflatex main.tex   # run twice to resolve references
 
 ## Roadmap
 
-- [x] **v1** — 5-algorithm comparison, statistical tests, mechanistic analysis
-- [ ] **v2** — Multi-seed (3 seeds), density sweep (10→50 vehicles), cross-seed Wilcoxon
-- [ ] **v3** — Buffer ablation, SAC baseline, full causal proof of distribution shift hypothesis
+- [x] **v1** — 5-algorithm comparison (seed 42), statistical tests, mechanistic analysis
+- [ ] **v2** *(in progress)* — Multi-seed (3 seeds), density sweep (10→50 vehicles), SAC baseline
+- [ ] **v3** — Buffer ablation, C51 distributional RL, full causal proof of distribution shift
 
 ---
 

@@ -56,8 +56,8 @@ A Comprehensive Empirical Study}
 \begin{abstract}
 We investigate a falsifiable hypothesis: \emph{off-policy deep reinforcement learning
 algorithms suffer from replay buffer contamination by early crash trajectories, causing a
-distribution shift that degrades performance in proportion to traffic density, and that
-this degradation is the primary driver of on-policy PPO's superiority in safety-critical
+distribution shift that degrades learning quality, and that
+this effect is a primary driver of on-policy PPO's superiority in safety-critical
 autonomous driving.}
 We test this hypothesis through a controlled empirical comparison of five DRL algorithms
 on the \texttt{highway-env} benchmark: vanilla DQN, Double DQN, Dueling DQN, a custom
@@ -67,8 +67,8 @@ All agents share a 90-dimensional kinematic state space, five discrete actions, 
 composite reward function over 50 stochastic evaluation episodes on a four-lane highway
 populated by 50 IDM vehicles.
 We find that PPO achieves a \textbf{96\% success rate} (4\% collision), significantly
-outperforming Rainbow DQN (88\% success, 12\% collision) and dramatically outperforming
-vanilla DQN (20\% success, 80\% collision).
+outperforming our 5-component Rainbow DQN (88\% success, 12\% collision) and dramatically
+outperforming vanilla DQN (20\% success, 80\% collision).
 Wilcoxon signed-rank tests confirm all pairwise PPO differences are statistically
 significant ($p < 0.05$); Cohen's $d = 0.871$ for PPO vs.\ DQN indicates a large effect.
 We attribute this to three interacting mechanisms: distribution shift immunity
@@ -121,13 +121,14 @@ the hard constraint that collision avoidance must take priority over speed maxim
 \begin{enumerate}
   \item \textbf{A falsifiable hypothesis and empirical test.} We frame the on-policy
         vs.\ off-policy comparison as a testable claim: that replay buffer distribution
-        shift, not architectural differences, is the primary cause of PPO's advantage
-        in dense traffic. We provide statistical evidence via Wilcoxon signed-rank tests
-        ($p < 0.05$) and Cohen's $d$ effect sizes across all algorithm pairs.
+        shift, not architectural differences, is a primary cause of PPO's advantage
+        in dense traffic (50~IDM vehicles, fixed density). We provide statistical
+        evidence via Wilcoxon signed-rank tests ($p < 0.05$) and Cohen's $d$ effect
+        sizes across all algorithm pairs.
   \item \textbf{A complete, fair benchmark.} Five DRL algorithms share identical
         environment configs, hyperparameter budgets, network architectures, and evaluation
         protocols on \texttt{highway-env}~\cite{highway-env}, including a custom
-        SB3-compatible Rainbow DQN with PER, NoisyNets, and $n$-step returns.
+        SB3-compatible 5-component Rainbow DQN with PER, NoisyNets, and $n$-step returns.
   \item \textbf{Mechanistic analysis.} We identify three interacting failure modes of
         off-policy learning in dense traffic — distribution shift, abrupt $\epsilon$-greedy
         exploration, and unconstrained policy updates — and provide empirical evidence
@@ -512,20 +513,22 @@ in its default randomised configuration. The following metrics are recorded:
 
 \subsection{Overall Performance}
 
-Table~\ref{tab:results} presents the full evaluation results. The results reveal a clear
-two-tier separation: PPO and Rainbow DQN form a high-performing group, while Dueling DQN,
-Double DQN, and DQN exhibit dramatically higher collision rates.
+Table~\ref{tab:results} presents the full evaluation results.
+Throughout, ``Rainbow (5/6)'' refers to our 5-component implementation
+(Section~IV-D, excluding C51). The results reveal a clear
+two-tier separation: PPO and Rainbow (5/6) form a high-performing group, while
+Dueling DQN, Double DQN, and DQN exhibit dramatically higher collision rates.
 
 \begin{table}[htbp]
 \centering
-\caption{Evaluation Results (50 Episodes). \textbf{Bold} = best.}
+\caption{Evaluation Results (50 Episodes, seed 42). \textbf{Bold} = best.}
 \label{tab:results}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Algorithm} & \textbf{Success} & \textbf{Mean Reward} & \textbf{Mean Speed} & \textbf{Collision} \\
                    & \textbf{Rate}    & ($\pm$ std)          & (m/s)               & \textbf{Rate} \\ \midrule
 PPO                & \textbf{96\%}    & \textbf{29.38 $\pm$ 4.54}  & 20.16 & \textbf{4\%}  \\
-Rainbow DQN        & 88\%             & 29.21 $\pm$ 6.95     & 20.67               & 12\%  \\
+Rainbow (5/6)      & 88\%             & 29.21 $\pm$ 6.95     & 20.67               & 12\%  \\
 Dueling DQN        & 46\%             & 24.31 $\pm$ 10.94    & 25.80               & 54\%  \\
 Double DQN         & 20\%             & 23.79 $\pm$ 11.83    & 28.75               & 80\%  \\
 DQN                & 20\%             & 20.78 $\pm$ 13.04    & 28.85               & 80\%  \\ \bottomrule
@@ -610,11 +613,12 @@ the 95\% confidence level.
 \section{Analysis: Why Does PPO Outperform Rainbow DQN?}
 % ════════════════════════════════════════════════════════════════════════════════
 
-The primary result — that on-policy PPO decisively outperforms the heavily-engineered
-off-policy Rainbow DQN — is counter-intuitive. Rainbow was specifically designed as
-the ``best of all worlds'' for value-based RL~\cite{hessel2018rainbow}, and yet PPO
-surpasses it by 8 percentage points in success rate and nearly halves the collision
-rate. We identify three complementary mechanisms explaining this finding.
+The primary result — that on-policy PPO decisively outperforms our heavily-engineered
+off-policy 5-component Rainbow DQN — is counter-intuitive. The original
+Rainbow~\cite{hessel2018rainbow} was specifically designed as
+the ``best of all worlds'' for value-based RL, and yet PPO
+surpasses our implementation by 8 percentage points in success rate and nearly halves
+the collision rate. We identify three complementary mechanisms explaining this finding.
 
 \subsection{Distribution Shift in Dense Traffic (The Core Cause)}
 
@@ -765,10 +769,11 @@ are frequent), and (3) the reward structure favours long-horizon survival over s
 speed, \emph{on-policy algorithms like PPO should be preferred over off-policy DQN
 variants, regardless of the latter's theoretical sophistication}.
 
-This does not mean off-policy methods are inherently inferior. In low-density traffic
-(fewer surrounding vehicles, rare crashes), the distribution shift problem is less severe,
-and Rainbow's sample efficiency advantage may outweigh its distribution shift disadvantage.
-A controlled study varying traffic density is a key direction for future work.
+This does not mean off-policy methods are inherently inferior — our results are
+obtained at a single, high density (50~vehicles). We hypothesise that in low-density
+traffic (fewer surrounding vehicles, rarer crashes) the distribution shift problem
+is less severe and Rainbow's sample efficiency advantage may dominate.
+A controlled density sweep is needed to test this and is planned for future work.
 
 \subsection{Limitations}
 
@@ -804,8 +809,6 @@ Based on the above analysis, we identify several high-value extensions:
   \item \textbf{SAC baseline}: Soft Actor-Critic~\cite{haarnoja2018soft} combines
         on-policy-like stability with off-policy sample efficiency through entropy
         maximisation — an important comparison point.
-  \item \textbf{Transfer learning}: pre-training on low-density traffic, then
-        fine-tuning on high-density — potentially offering the best of both worlds.
 \end{itemize}
 
 % ════════════════════════════════════════════════════════════════════════════════
@@ -813,8 +816,9 @@ Based on the above analysis, we identify several high-value extensions:
 % ════════════════════════════════════════════════════════════════════════════════
 
 We presented a systematic empirical comparison of five DRL algorithms for autonomous
-highway driving in dense, multi-agent traffic. Our central finding is that PPO
-achieves 96\% success rate with only 4\% collisions, outperforming our custom
+highway driving in dense, multi-agent traffic (50~IDM vehicles, seed~42).
+Our central finding is that PPO
+achieves 96\% success rate with only 4\% collisions, outperforming our 5-component
 Rainbow DQN (88\% success, 12\% collisions) and dramatically outperforming vanilla
 DQN and Double DQN (both 20\% success, 80\% collisions).
 
@@ -825,11 +829,13 @@ than $\epsilon$-greedy; and (3) \emph{policy update stability}, where PPO's clip
 prevents catastrophic updates that degrade collision avoidance.
 
 The broader lesson is that algorithmic sophistication does not always transfer across
-problem domains. Rainbow DQN was engineered to excel on Atari — a domain where safety
-is irrelevant and exploration cost is low. In safety-critical autonomous driving,
-on-policy learning's immunity to distribution shift is a more valuable property than
-any individual DQN enhancement. We hope these findings guide practitioners toward more
-principled algorithm selection for real-world autonomous driving applications.
+problem domains. The original Rainbow DQN was engineered to excel on Atari — a domain
+where safety is irrelevant and exploration cost is low. In safety-critical autonomous
+driving, on-policy learning's immunity to distribution shift appears to be a more
+valuable property than any individual DQN enhancement, though this conclusion
+requires validation across multiple seeds and traffic densities.
+We hope these findings guide practitioners toward more
+principled algorithm selection for safety-critical RL applications.
 
 % ════════════════════════════════════════════════════════════════════════════════
 \begin{thebibliography}{00}
